@@ -1,66 +1,92 @@
-// BUILD YOUR SERVER HERE
 const express = require("express")
 const db = require("./users/model")
 
 const server = express()
-
 server.use(express.json())
 
-//Read users (GET) Returns an array 
-server.get("/api/users", (req, res) => {
-	res.json({ message: "Hello, World" })
-})
 
-//Read users (GET) Returns the user object with the specified id
-server.get("/api/users/:id", (req, res) => {
-	const users = db.find()
-	res.json(users)
+server.get("/", (req, res) => {
+    res.json({ message: "Hello, World" })
 })
 
 //Create new user (POST) Creates a user using the information sent inside the 'request body'
 server.post("/api/users", (req, res) => {
-	const newUser = db.createUser({
-        id: req.body.id,
+    const newUser = db.insert({
+        id: db.shortid,
         name: req.body.name,
-        bio: req.body.bio
-	})
+        bio: req.body.bio,
+    })
+    newUser.then(() => {
+        if (!req.body.name || !req.body.bio) {
+            return res.status(400).json({ message: "Please provide name and bio for the user" })
+        } else {
+            res.status(201).json(newUser)
+        }
+    })
+        .catch((error) => {
+            console.log(error)
+            res.status(500).json({ message: " There was an error while saving the user to the database" })
+        })
 
-	res.status(201).json(newUser)
 })
 
-//Update a user (PUT) Updates the user with the specified `id` using data from the `request body`. Returns the modified user
-server.put("/api/users/:id", (req, res) => {
-    const user = db.getUserById(req.params.id)
-
-    if (user) {
-        const updatedUser = db.updateUser(user.id, {
-            id: req.body.id,
-            name: req.body.name,
-            bio: req.body.bio
+//Read users (GET) Returns an array 
+server.get("/api/users", (req, res) => {
+    const users = db.find()
+    users
+        .then((user) => {
+            res.json(user)
         })
-
-        res.json(updatedUser)
-    } else {
-        res.status(404).json({
-            message: "User not found"
+        .catch(() => {
+            res.status(500).json({ message: "The users information could not be retrieved" })
         })
-    }
+})
+
+// Read users (GET) Returns the user object with the specified id
+server.get("/api/users/:id", (req, res) => {
+    const users = db.findById(req.params.id)
+    users.then((user) => {
+        if (req.params.id) {
+            res.json(user)
+        } else {
+            res.status(404).json({
+                message: "The user with the specified ID does not exist"
+            })
+        }
+    })
+        .catch(() => {
+            res.status(500).json({ message: "The user information could not be retrieved" })
+        })
 })
 
 //Delete user (DELETE) Removes the user with the specified `id` and returns the deleted user.
 server.delete("/api/users/:id", (req, res) => {
-    const user = db.getUserById(req.params.id)
-
-    if (user) {
-        db.deleteUser(user.id)
-        console.log(user)
-
-        req.status(204).end()
-    } else {
-        res.status(404).json({
-            message: "User not found"
+    const users = db.remove(req.params.id)
+    users.then((user) => {
+        if (req.params.id) {
+            res.json(user)
+        } else {
+            { res.status(500).json({ message: "TThe user with the specified ID does not exist" }) }
+        }
+    })
+        .catch(() => {
+            res.status(500).json({ message: "The user could not be removed" })
         })
-    }
 })
 
-module.exports = server // EXPORT YOUR SERVER instead of {}
+//Update a user (PUT) Updates the user with the specified `id` using data from the `request body`. Returns the modified user
+server.put("/api/users/:id", (req, res) => {
+    const { id } = req.params
+    const { name, bio } = req.body
+    const users = db.update(id, req.body)
+    users.then((user) => {
+        if (!id) { res.status(404).json({ message: "The user with the specified ID does not exist" }) }
+        else if (!name || !bio) { res.status(400).json({ message: "Please provide name and bio for the user" }) }
+        else if (id && name && bio) { res.status(200).json(user) }
+    })
+        .catch(() => {
+            res.status(500).json({ message: "The user could not be removed" })
+        })
+})
+
+module.exports = server 
