@@ -42,7 +42,7 @@ server.get("/api/users", (req, res) => {
         })
 })
 
-// Read users (GET) Returns the user object with the specified id
+// Read users (GET) Returns the user object with specified id
 server.get("/api/users/:id", (req, res) => {
     const users = db.findById(req.params.id)
     users.then((user) => {
