@@ -74,7 +74,7 @@ server.delete("/api/users/:id", (req, res) => {
         })
 })
 
-//Update a user (PUT) Updates the user with the specified `id` using data from the `request body`. Returns the modified user
+//Update a user (PUT) Updates the user with the specified `id` using data from the `request body`. Returns the modified user.
 server.put("/api/users/:id", (req, res) => {
     const { id } = req.params
     const { name, bio } = req.body
