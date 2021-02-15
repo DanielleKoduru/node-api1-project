@@ -59,7 +59,7 @@ server.get("/api/users/:id", (req, res) => {
         })
 })
 
-//Delete user (DELETE) Removes the user with the specified `id` and returns the deleted user.
+//Delete user (DELETE) Removes the user with the specified `id` and returns the deleted user
 server.delete("/api/users/:id", (req, res) => {
     const users = db.remove(req.params.id)
     users.then((user) => {
